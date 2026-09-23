@@ -56,19 +56,20 @@ class ChatMessage:
             return [self._recursive_serialization(item) for item in value]
         return value
 
-    def dict(self, **kwargs) -> dict:
-        # ensure all additional_kwargs are serializable
-        msg = super().dict(**kwargs)
+    def dict(self) -> dict:
+        additional_kwargs = self._recursive_serialization(self.additional_kwargs)
 
-        for key, value in msg.get("additional_kwargs", {}).items():
-            value = self._recursive_serialization(value)
+        for value in additional_kwargs.values():
             if not isinstance(value, (str, int, float, bool, dict, list, type(None))):
                 raise ValueError(
                     f"Failed to serialize additional_kwargs value: {value}"
                 )
-            msg["additional_kwargs"][key] = value
 
-        return msg
+        return {
+            "role": self.role.value,
+            "content": self.content,
+            "additional_kwargs": additional_kwargs,
+        }
 
 
 # ===== Generic Model Output - Chat =====
